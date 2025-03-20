@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/static/css/signup.css">
+     <style>
+        .message {
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .success { background-color: #4CAF50; color: white; }
+        .error { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Place Message Box ABOVE Form -->
+    <div id="messageBox" class="message"></div>
+
+    <div class="container">
+        <h2>Sign Up</h2>
+
+        <!-- REMOVE action & method so JS handles submission -->
+        <form id="signupForm">
+            <input type="text" id="username" placeholder="Enter username" required>
+            <input type="email" id="email" placeholder="Enter email" required>
+            <input type="password" id="password" placeholder="Enter password" required>
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <p>Already have an account? <a href="http://127.0.0.1:5000/signin_page">Sign In</a></p>
+    </div>
+
+   <script>
+        document.getElementById("signupForm").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent form from submitting normally
+
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/add_user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+            const messageBox = document.getElementById("messageBox");
+
+            if (result.success) {
+                messageBox.textContent = result.message;
+                messageBox.className = "message success";
+            } else {
+                messageBox.textContent = result.message;
+                messageBox.className = "message error";
+            }
+
+            messageBox.style.display = "block";  // Show the message box
+        });
+    </script>
+
+</body>
+</html>

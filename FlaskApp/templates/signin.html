@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="/static/css/signin.css">
+    <style>
+        .message {
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .success { background-color: #4CAF50; color: white; }
+        .error { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Message Box Positioned Above the Form -->
+    <div id="messageBox" class="message"></div>
+
+    <div class="container">
+        <h2>Sign In</h2>
+
+        <!-- Removed action so that JavaScript handles the request -->
+        <form id="signinForm">
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <p>New User? Sign up here.. <a href="http://127.0.0.1:5000/signup_page">Sign Up</a></p>
+    </div>
+
+    <script>
+        document.getElementById("signinForm").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent default form submission
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/sign_in", {
+                 method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+});
+
+            const data = await response.json();
+
+if (data.success) {
+    // Redirect to welcome page with email and username as URL parameters
+    window.location.href = `/welcome?email=${encodeURIComponent(data.email)}&username=${encodeURIComponent(data.username)}`;
+} else {
+    alert(data.message);
+}
+
+        });
+    </script>
+
+</body>
+</html>

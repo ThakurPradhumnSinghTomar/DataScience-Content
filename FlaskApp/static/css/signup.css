@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/static/css/signup.css">
+    <style>
+        /* Centered Success/Error Message */
+        .message {
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: fit-content;
+            text-align: center;
+            z-index: 1000;
+        }
+        .success { background-color: #4CAF50; color: white; }
+        .error { background-color: #f44336; color: white; }
+
+        /* Centering Form */
+        .container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        button {
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Message Box Positioned Above the Form -->
+    <div id="messageBox" class="message"></div>
+
+    <div class="container">
+        <h2>Sign Up</h2>
+
+        <form id="signupForm">
+            <input type="text" id="username" placeholder="Enter username" required>
+            <input type="email" id="email" placeholder="Enter email" required>
+            <input type="password" id="password" placeholder="Enter password" required>
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <p>Already have an account? <a href="http://127.0.0.1:5000/signin_page">Sign In</a></p>
+    </div>
+
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent normal form submission
+
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/add_user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+            const messageBox = document.getElementById("messageBox");
+
+            // Show Success or Error Message
+            messageBox.textContent = result.message;
+            messageBox.className = `message ${result.success ? "success" : "error"}`;
+            messageBox.style.display = "block";
+
+            // Automatically hide the message after 3 seconds
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 3000);
+
+            // Redirect to Sign In page if sign-up is successful
+            if (result.success) {
+                setTimeout(() => {
+                    window.location.href = "http://127.0.0.1:5000/signin_page";
+                }, 5000);
+            }
+        });
+    </script>
+
+</body>
+</html>
