@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/signin.css">
+    <title>Welcome</title>
+</head>
+<body>
+    <h2>Welcome, {{ username }}!</h2>
+    <p>You have successfully signed in.</p>
+
+    <!-- Message Box -->
+    <div id="messageBox" style="display: none; padding: 10px; border-radius: 5px; margin: 10px 0;">
+        <p id="messageText"></p>
+    </div>
+
+    <!-- Buttons -->
+    <button id="addContact">Add Contact</button>
+    <button id="deleteContact">Delete Contact</button>
+    <button id="getAllContacts">Get All Contacts</button>
+    <button id="logoutButton">Logout</button>
+
+<script>
+    document.getElementById("logoutButton").addEventListener("click", function () {
+        window.location.href = "/logout";  // Redirect to logout route
+    });
+</script>
+
+    <!-- Contacts Table (Initially Hidden) -->
+    <table id="contactsTable" style="display: none; margin-top: 10px; border-collapse: collapse; width: 100%; border: 1px solid black;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid black; padding: 8px;">Name</th>
+                <th style="border: 1px solid black; padding: 8px;">Mobile Number</th>
+            </tr>
+        </thead>
+        <tbody id="contactsBody">
+            <!-- Contacts will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Delete Contact Form -->
+    <div id="deleteContactForm" style="display: none; margin-top: 10px;">
+        <h3>Delete Contact</h3>
+        <input type="text" id="deleteContactName" placeholder="Enter Name to Delete" required>
+        <button id="submitDeleteContact">Delete</button>
+    </div>
+
+    <!-- Add Contact Form -->
+    <div id="contactForm" style="display: none; margin-top: 10px;">
+        <h3>Add Contact</h3>
+        <input type="text" id="contactName" placeholder="Enter Name" required>
+        <input type="text" id="contactNumber" placeholder="Enter Mobile Number" required>
+        <button id="submitContact">Submit</button>
+    </div>
+
+    <script>
+        const email = `{{ user_email }}`;
+        console.log("Logged-in user email:", email);
+
+        function showMessage(message, isSuccess = true) {
+            const messageBox = document.getElementById("messageBox");
+            const messageText = document.getElementById("messageText");
+
+            messageText.textContent = message;
+            messageBox.style.display = "block";
+            messageBox.style.backgroundColor = isSuccess ? "#d4edda" : "#f8d7da";
+            messageBox.style.color = isSuccess ? "#155724" : "#721c24";
+
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 3000);
+        }
+
+        // Hide all forms and table
+        function hideAll() {
+            document.getElementById("contactForm").style.display = "none";
+            document.getElementById("deleteContactForm").style.display = "none";
+            document.getElementById("contactsTable").style.display = "none";
+        }
+
+        // Add Contact Button Click
+        document.getElementById("addContact").addEventListener("click", function () {
+            hideAll();
+            document.getElementById("contactForm").style.display = "block";
+        });
+
+        // Add Contact Functionality
+        document.getElementById("submitContact").addEventListener("click", async function () {
+            const name = document.getElementById("contactName").value.trim();
+            const mobile_no = document.getElementById("contactNumber").value.trim();
+
+            if (!name || !mobile_no) {
+                showMessage("Please enter both name and mobile number!", false);
+                return;
+            }
+
+            try {
+                const response = await fetch("/add_contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, name, mobile_no })
+                });
+
+                const result = await response.json();
+                showMessage(result.message, result.success);
+            } catch (error) {
+                showMessage("Error adding contact: " + error.message, false);
+            }
+        });
+
+        // Delete Contact Button Click
+        document.getElementById("deleteContact").addEventListener("click", function () {
+            hideAll();
+            document.getElementById("deleteContactForm").style.display = "block";
+        });
+
+        // Delete Contact Functionality
+        document.getElementById("submitDeleteContact").addEventListener("click", async function () {
+            const name = document.getElementById("deleteContactName").value.trim();
+
+            if (!name) {
+                showMessage("Please enter a name to delete!", false);
+                return;
+            }
+
+            try {
+                const response = await fetch("/delete_contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, name })
+                });
+
+                const result = await response.json();
+                showMessage(result.message, result.success);
+            } catch (error) {
+                showMessage("Error deleting contact: " + error.message, false);
+            }
+        });
+
+        // Get All Contacts Button Click
+        document.getElementById("getAllContacts").addEventListener("click", async function () {
+            hideAll(); // Hide other elements
+
+            try {
+                const response = await fetch("/get_all_contacts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const tableBody = document.querySelector("#contactsTable tbody");
+                    tableBody.innerHTML = "";  // Clear previous data
+
+                    result.contacts.forEach(contact => {
+                        const row = `<tr><td>${contact.name}</td><td>${contact.mobile_no}</td></tr>`;
+                        tableBody.innerHTML += row;
+                    });
+
+                    document.getElementById("contactsTable").style.display = "table"; // Show the table
+                } else {
+                    showMessage(result.message, false);
+                }
+            } catch (error) {
+                showMessage("Error fetching contacts: " + error.message, false);
+            }
+        });
+    </script>
+</body>
+</html>
